@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Location Shortcuts</string>
+    <string name="edit_shortcut">Edit Shortcut</string>
+    <string name="back">Back</string>
+    <string name="add_shortcut">Add shortcut</string>
+    <string name="region_filter">Region Filter</string>
+    <string name="none">None</string>
+    <string name="shortcut_description">%1$s in %2$s</string>
+    <string name="type_filter">Type Filter</string>
+    <string name="region">Region</string>
+    <string name="type">Type</string>
+    <string name="label">Label</string>
+    <string name="address">Address</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="save">Save</string>
+    <string name="open">Open</string>
+    <string name="delete">Delete</string>
+    <string name="geocode_location">Geocode Location</string>
+    <string name="last_used_on">Last used on %1$s</string>
+    <string name="more_options">More options</string>
+    <string name="export_to_file">Export to File</string>
+    <string name="download_icon">Download icon</string>
+    <string name="append_from_file">Append from File</string>
+    <string name="upload_icon">Upload icon</string>
+</resources>
