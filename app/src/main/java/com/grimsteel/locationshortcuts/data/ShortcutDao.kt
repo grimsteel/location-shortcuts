@@ -16,10 +16,10 @@ data class TypeWithCount(
 
 @Dao
 interface ShortcutDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(shortcut: Shortcut): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMultiple(shortcut: List<Shortcut>)
 
     @Update

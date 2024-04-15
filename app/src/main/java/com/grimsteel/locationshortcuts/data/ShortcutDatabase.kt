@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [Shortcut::class], version = 1, exportSchema = false)
+@Database(entities = [Shortcut::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class ShortcutDatabase : RoomDatabase() {
     abstract fun shortcutDao(): ShortcutDao

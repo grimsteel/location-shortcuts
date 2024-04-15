@@ -37,7 +37,7 @@ class TypeSelectScreen(carContext: CarContext) : Screen(carContext) {
 
     private fun promptRegion() {
         screenManager.pushForResult(
-            com.grimsteel.locationshortcuts.car.RegionSelectScreen(
+            RegionSelectScreen(
                 carContext
             )
         ) { selectedRegion ->

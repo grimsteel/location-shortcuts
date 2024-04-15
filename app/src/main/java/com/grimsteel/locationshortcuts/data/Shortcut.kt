@@ -1,12 +1,13 @@
 package com.grimsteel.locationshortcuts.data
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Date
 
-@Entity(tableName = "shortcuts")
+@Entity(tableName = "shortcuts", indices = [Index(value = ["latitude", "longitude"], unique = true)])
 data class Shortcut(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
