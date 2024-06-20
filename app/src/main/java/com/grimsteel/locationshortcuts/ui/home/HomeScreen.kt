@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -48,7 +49,7 @@ fun HomeScreen(editShortcut: (id: Int) -> Unit, viewModel: HomeViewModel = viewM
                     .weight(1f),
                 onExpandedChange = { regionExpanded = it }) {
                 TextField(
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     readOnly = true,
                     singleLine = true,
                     value = homeUiState.regionFilter ?: stringResource(R.string.none),
@@ -85,7 +86,7 @@ fun HomeScreen(editShortcut: (id: Int) -> Unit, viewModel: HomeViewModel = viewM
                     .weight(1f),
                 onExpandedChange = { typeExpanded = it }) {
                 TextField(
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     readOnly = true,
                     singleLine = true,
                     value = homeUiState.typeFilter ?: stringResource(R.string.none),

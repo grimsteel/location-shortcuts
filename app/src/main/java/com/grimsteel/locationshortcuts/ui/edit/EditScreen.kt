@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -75,7 +76,7 @@ fun EditScreen(goHome: () -> Unit, viewModel: EditViewModel = viewModel(factory 
                     .weight(1f),
                 onExpandedChange = { regionExpanded = it }) {
                 TextField(
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
                     singleLine = true,
                     value = viewModel.currentShortcutState.region,
                     onValueChange = { viewModel.updateShortcut(viewModel.currentShortcutState.copy(region = it)) },
@@ -87,8 +88,7 @@ fun EditScreen(goHome: () -> Unit, viewModel: EditViewModel = viewModel(factory 
                 )
                 ExposedDropdownMenu(
                     expanded = regionExpanded,
-                    onDismissRequest = { regionExpanded = false },
-                    focusable = false) {
+                    onDismissRequest = { regionExpanded = false }) {
                     editUiState.regions.forEach { region ->
                         DropdownMenuItem(text = { Text(text = region) }, onClick = {
                             viewModel.updateShortcut(viewModel.currentShortcutState.copy(region = region))
@@ -104,7 +104,7 @@ fun EditScreen(goHome: () -> Unit, viewModel: EditViewModel = viewModel(factory 
                     .weight(1f),
                 onExpandedChange = { typeExpanded = it }) {
                 TextField(
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
                     singleLine = true,
                     value = viewModel.currentShortcutState.type,
                     onValueChange = { viewModel.updateShortcut(viewModel.currentShortcutState.copy(type = it)) },
@@ -116,8 +116,7 @@ fun EditScreen(goHome: () -> Unit, viewModel: EditViewModel = viewModel(factory 
                 )
                 ExposedDropdownMenu(
                     expanded = typeExpanded,
-                    onDismissRequest = { typeExpanded = false },
-                    focusable = false) {
+                    onDismissRequest = { typeExpanded = false }) {
                     editUiState.types.forEach { type ->
                         DropdownMenuItem(text = { Text(text = type) }, onClick = {
                             viewModel.updateShortcut(viewModel.currentShortcutState.copy(type = type))
