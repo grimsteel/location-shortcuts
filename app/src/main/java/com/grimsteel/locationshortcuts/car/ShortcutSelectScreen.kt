@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.grimsteel.locationshortcuts.R
 import com.grimsteel.locationshortcuts.data.Shortcut
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -75,95 +76,85 @@ class ShortcutSelectScreen(val region: String?, val type: String?, carContext: C
         val shortcutDao = (carContext.applicationContext as com.grimsteel.locationshortcuts.LocationShortcutsApplication).shortcutsRepository
         if (shortcuts == null) {
             // Load the data and show a loading screen
-            lifecycleScope.launch(Dispatchers.IO) {
+            runBlocking {
                 shortcuts = shortcutDao.getAllForRegionAndType(region, type).filterNotNull().first()
-                invalidate()
             }
-            return ListTemplate.Builder()
-                .setTitle("${type ?: "All Categories"} in ${region ?: "All Regions"}")
-                .setHeaderAction(Action.BACK)
-                .setLoading(true)
-                .build()
-        } else {
-            // Build the shortcut list
-            val itemList = ItemList.Builder()
-            shortcuts!!.forEach { it ->
-                val row = Row.Builder()
-                    // Only include the region if we're showing all regions
-                    .setTitle(if (region == null) "${it.label} in ${it.region}" else it.label)
-                    .setImage(getTypeIcon(carContext.applicationContext, it.type))
-                    .setOnClickListener {
-                        // launch in directions app
-                        val navigationUri = Uri.parse("geo:0,0").buildUpon()
-                        navigationUri.appendQueryParameter("q", it.address)
-                        val navigateIntent = Intent(CarContext.ACTION_NAVIGATE, navigationUri.build())
-                        carContext.startCarApp(navigateIntent)
+        }
+        // Build the shortcut list
+        val itemList = ItemList.Builder()
+        shortcuts!!.forEach { it ->
+            val row = Row.Builder()
+                // Only include the region if we're showing all regions
+                .setTitle(if (region == null) "${it.label} in ${it.region}" else it.label)
+                .setImage(getTypeIcon(carContext.applicationContext, it.type))
+                .setOnClickListener {
+                    // launch in directions app
+                    val navigationUri = Uri.parse("geo:0,0").buildUpon()
+                    navigationUri.appendQueryParameter("q", it.address)
+                    val navigateIntent = Intent(CarContext.ACTION_NAVIGATE, navigationUri.build())
+                    carContext.startCarApp(navigateIntent)
 
-                        // set the last used time
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            val newShortcut = it.copy(lastUsed = Date())
-                            shortcutDao.update(newShortcut)
-                        }
+                    // set the last used time
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val newShortcut = it.copy(lastUsed = Date())
+                        shortcutDao.update(newShortcut)
                     }
-
-                // show how far away it is
-                currentLocation?.let { loc ->
-                    val location = Location("")
-                    location.latitude = it.latitude
-                    location.longitude = it.longitude
-                    row.addText("%.2f miles away".format((loc.distanceTo(location) / METERS_IN_MILE)))
                 }
 
-                row.addText("Last used: ${DATE_FORMAT.format(it.lastUsed)}")
-
-                itemList.addItem(row.build())
+            // show how far away it is
+            currentLocation?.let { loc ->
+                val location = Location("")
+                location.latitude = it.latitude
+                location.longitude = it.longitude
+                row.addText("%.2f miles away".format((loc.distanceTo(location) / METERS_IN_MILE)))
             }
 
-            val actionStrip = ActionStrip.Builder()
+            row.addText("Last used: ${DATE_FORMAT.format(it.lastUsed)}")
 
-            @SuppressLint("MissingPermission") if (hasLocationPermission()) {
-                // We have the location permission, so show a sort by location button
-                actionStrip.addAction(
-                    Action.Builder()
-                        .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.rounded_distance_24)).build())
-                        .setOnClickListener { sortByLocation() }
-                        .build()
-                )
-            } else {
-                // We don't have the location permission, so show a button to prompt for it
-                actionStrip.addAction(
-                    Action.Builder()
-                        .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.rounded_distance_24)).build())
-                        .setOnClickListener(ParkedOnlyOnClickListener.create {
-                            carContext.requestPermissions(listOf(Manifest.permission.ACCESS_FINE_LOCATION)) { granted, _ ->
-                                // Refresh to show distances
-                                if (granted.contains(Manifest.permission.ACCESS_FINE_LOCATION))
-                                    sortByLocation()
-                            }
-                            CarToast.makeText(carContext, "Grant Location Shortcuts the location permission on your phone", CarToast.LENGTH_LONG).show()
-                        })
-                        .build()
-                )
-            }
+            itemList.addItem(row.build())
+        }
 
-            // sort by last used date
+        val actionStrip = ActionStrip.Builder()
+
+        @SuppressLint("MissingPermission") if (hasLocationPermission()) {
+            // We have the location permission, so show a sort by location button
             actionStrip.addAction(
                 Action.Builder()
-                    .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.round_access_time_24)).build())
-                    .setOnClickListener { sortByLastUsed() }
+                    .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.rounded_distance_24)).build())
+                    .setOnClickListener { sortByLocation() }
                     .build()
             )
-
-            // Sort by location by default
-            sortByLocation()
-
-            return ListTemplate.Builder()
-                .setTitle("${type ?: "All Categories"} in ${region ?: "All Regions"}")
-                .setHeaderAction(Action.BACK)
-                .setLoading(false)
-                .setSingleList(itemList.build())
-                .setActionStrip(actionStrip.build())
-                .build()
+        } else {
+            // We don't have the location permission, so show a button to prompt for it
+            actionStrip.addAction(
+                Action.Builder()
+                    .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.rounded_distance_24)).build())
+                    .setOnClickListener(ParkedOnlyOnClickListener.create {
+                        carContext.requestPermissions(listOf(Manifest.permission.ACCESS_FINE_LOCATION)) { granted, _ ->
+                            // Refresh to show distances
+                            if (granted.contains(Manifest.permission.ACCESS_FINE_LOCATION))
+                                sortByLocation()
+                        }
+                        CarToast.makeText(carContext, "Grant Location Shortcuts the location permission on your phone", CarToast.LENGTH_LONG).show()
+                    })
+                    .build()
+            )
         }
+
+        // sort by last used date
+        actionStrip.addAction(
+            Action.Builder()
+                .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.round_access_time_24)).build())
+                .setOnClickListener { sortByLastUsed() }
+                .build()
+        )
+
+        return ListTemplate.Builder()
+            .setTitle("${type ?: "All Categories"} in ${region ?: "All Regions"}")
+            .setHeaderAction(Action.BACK)
+            .setLoading(false)
+            .setSingleList(itemList.build())
+            .setActionStrip(actionStrip.build())
+            .build()
     }
 }

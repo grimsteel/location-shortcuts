@@ -15,23 +15,18 @@ import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.grimsteel.locationshortcuts.R
 import com.grimsteel.locationshortcuts.data.TypeWithCount
+import kotlinx.coroutines.runBlocking
 
 class TypeSelectScreen(carContext: CarContext) : Screen(carContext) {
     private var types: List<TypeWithCount>? = null
     private var currentRegion: String? = null
     private var fetchCurrentRegion = true
-    private val loadingScreen = ListTemplate.Builder()
-        .setTitle("Select Category")
-        .setHeaderAction(Action.APP_ICON)
-        .setLoading(true)
-        .build()
 
     private val application = carContext.applicationContext as com.grimsteel.locationshortcuts.LocationShortcutsApplication
 
@@ -43,7 +38,7 @@ class TypeSelectScreen(carContext: CarContext) : Screen(carContext) {
         ) { selectedRegion ->
             currentRegion = selectedRegion as String?
             // Remember their choice
-            lifecycleScope.launch(Dispatchers.IO) {
+            lifecycleScope.launch {
                 application.preferences.edit {
                     // Remove it if they selected null
                     if (currentRegion == null) it.remove(com.grimsteel.locationshortcuts.LocationShortcutsApplication.LAST_SELECTED_REGION_KEY)
@@ -83,7 +78,7 @@ class TypeSelectScreen(carContext: CarContext) : Screen(carContext) {
     override fun onGetTemplate(): Template {
         if (types == null) {
             // Fetch the types and current region
-            lifecycleScope.launch(Dispatchers.IO) {
+            runBlocking {
                 if (fetchCurrentRegion) {
                     // Get the current region from prefs
                     currentRegion =
@@ -94,49 +89,46 @@ class TypeSelectScreen(carContext: CarContext) : Screen(carContext) {
                     fetchCurrentRegion = false
                 }
 
-                // If it's null, default to all regions
                 types = (
                     currentRegion?.let {
                         application.shortcutsRepository.getAllTypesWithCountForRegion(it)
                     } ?: application.shortcutsRepository.getAllTypesWithCount()
-                ).filterNotNull().first()
-                invalidate()
+                    ).filterNotNull().first()
             }
-            return loadingScreen
-        } else {
-            val itemList = ItemList.Builder()
-            // Build the list
-            types!!.forEach {
-                itemList.addItem(makeRow(it.type, it.type, getTypeIcon(carContext.applicationContext, it.type), it.count))
-            }
-            // All types
-            itemList.addItem(makeRow(
-                "All Categories",
-                null,
-                CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.ic_asterisk)).build(),
-                types!!.sumOf { it.count }
-            ))
-            return ListTemplate.Builder()
-                .setTitle("Select Category (${currentRegion ?: "All Regions"})")
-                .setHeaderAction(Action.APP_ICON)
-                .setLoading(false)
-                .setSingleList(
-                    itemList.build()
-                )
-                // Add change region FAB
-                .addAction(
-                    Action.Builder()
-                        .setIcon(
-                            CarIcon.Builder(
-                                IconCompat
-                                    .createWithResource(carContext.applicationContext, R.drawable.round_edit_location_alt_24)
-                            ).build()
-                        )
-                        .setBackgroundColor(CarColor.PRIMARY)
-                        .setOnClickListener { promptRegion() }
-                        .build()
-                )
-                .build()
         }
+
+        val itemList = ItemList.Builder()
+        // Build the list
+        types!!.forEach {
+            itemList.addItem(makeRow(it.type, it.type, getTypeIcon(carContext.applicationContext, it.type), it.count))
+        }
+        // All types
+        itemList.addItem(makeRow(
+            "All Categories",
+            null,
+            CarIcon.Builder(IconCompat.createWithResource(carContext.applicationContext, R.drawable.ic_asterisk)).build(),
+            types!!.sumOf { it.count }
+        ))
+        return ListTemplate.Builder()
+            .setTitle("Select Category (${currentRegion ?: "All Regions"})")
+            .setHeaderAction(Action.APP_ICON)
+            .setLoading(false)
+            .setSingleList(
+                itemList.build()
+            )
+            // Add change region FAB
+            .addAction(
+                Action.Builder()
+                    .setIcon(
+                        CarIcon.Builder(
+                            IconCompat
+                                .createWithResource(carContext.applicationContext, R.drawable.round_edit_location_alt_24)
+                        ).build()
+                    )
+                    .setBackgroundColor(CarColor.PRIMARY)
+                    .setOnClickListener { promptRegion() }
+                    .build()
+            )
+            .build()
     }
 }
